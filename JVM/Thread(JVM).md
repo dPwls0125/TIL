@@ -26,11 +26,22 @@ JVM 스케줄러가 아무리 java thread에 우선순위를 부여한다고 해
 - OS, 커널 버전, 시스템 부하에 따라 실제 실행 결과는 달라질 후 있다. 
 
 
-# "GC에서 그냥 Application Thread에 자원을 안 주면 되지 않나?"에 대한 반박
+## 2."GC에서 그냥 Application Thread에 자원을 안 주면 되지 않나?"에 대한 반박
 
 - STW는 OS가 Thread를 멈추는 것이 아니라, 
 - JVM이 Safepoint라는 '멈춰도 안전한 지점'을 만들어 
 - Application Thread가 스스로 멈추게 하는 협조적 메커니즘이다. 
+
+
+## 쓰레드의 실행 제어 
+
+1. 상태 
+
+- 생성(New) - 쓰레드가 생성되고 아직 **start()**가 실행되지 않은 상태 
+- 실행 대기(Runnable) - 실행중 또는 실행 가능한 상태 
+- Blocked(일시정지) - 동기화 블럭에 의해 일시 정지된 상태
+- Waiting, Time_waiting(일시 정지) - 쓰레드의 작업이 종료되지는 않았지만 실행가능하지 않은(unrunnable) 일시정지 상태, TIME_WAITING은 일시정지시간이 지정된 경우를 의미한다. 
+- Terminated - 쓰레드의 작업이 종료된 상태 
 
 
 

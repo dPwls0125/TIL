@@ -43,7 +43,7 @@ JVM 스케줄러가 아무리 java thread에 우선순위를 부여한다고 해
 - Waiting, Time_waiting(일시 정지) - 쓰레드의 작업이 종료되지는 않았지만 실행가능하지 않은(unrunnable) 일시정지 상태, TIME_WAITING은 일시정지시간이 지정된 경우를 의미한다. 
 - Terminated - 쓰레드의 작업이 종료된 상태 
 
-
+=> 논리적 개념, 물리적 개념. 
 
 ---
 

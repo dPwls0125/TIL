@@ -1,7 +1,7 @@
 # Garbage Collector란?
 
 ### GC를 간략하게 설명한다면? 
-heap 영역에 동적으로 할당 된 객체들 중, 더이상 참조되지 않는(unreachable) 객체들을 제거하는 것. GC 주기가 돌아갈떄,   **GC Root로 부터 Reachable한 객체들을 하나의 다른 안전한 공간에 옮기고**, 기존의 공간을 Freelist에 넣어버린다. 
+heap 영역에 동적으로 할당 된 객체들 중, 더이상 참조되지 않는(unreachable) 객체들을 제거하는 것. GC 주기가 돌아갈떄, **GC Root로 부터 Reachable한 객체들을 하나의 다른 안전한 공간에 옮기고**, 기존의 공간을 Freelist에 넣어버린다. 
 
 => 핵심은 GC는 쓰지 않는, 참조하지 않는 즉 unreachable 객체를 대상으로 움직이지 않는다는 것. 목적은 더이상 참조되지 않는 객체를 정리하는 것이지만, 실제 GC 시스템은 lived Object를 중심으로 움직인다. 즉, GC의 본질은 살아있는 객체를 안전한 공간으로 옮기고, 원래 있던 공간을 통째로 반환하는 것이다.
 
@@ -16,6 +16,57 @@ heap 영역에 동적으로 할당 된 객체들 중, 더이상 참조되지 않
 
 GC 루트는 아무도 참하지 않아도 반드시 살아있어야 하는 객체로, 마킹의 시작점이 된다. 
 ex) 스택 프레임의 지역변수, 메서드 영역의 static 변수 등. 
+
+**Concurrent Marking Cycle (동시 마킹 사이클)**
+
+Old Region에 Garbage가 쌓이기 시작하면 G1GC는 Old 영역 전체를 대상으로 한 마킹 사이클을 시작합니다.
+
+이 과정은 Young GC와 병행하여 수행됩니다.
+
+5.1 Initial Mark
+
+STW
+
+Old Region에 직접 연결된 Root 객체를 마킹
+
+Young GC와 함께 수행되므로 추가 비용이 적음
+
+5.2 Concurrent Mark
+
+STW 아님
+
+애플리케이션 스레드와 동시에 실행
+
+Old Region 전체를 순회하며 Live Object 마킹
+
+이 단계에서 각 Region의 Live Ratio / Garbage Ratio 계산
+
+이 단계가 G1GC의 핵심입니다.
+“어느 Region에 Garbage가 얼마나 있는지”가 이때 결정됩니다.
+
+5.3 Remark
+
+STW
+
+Concurrent Mark 중 변경된 객체 참조 정리
+
+SATB(Snapshot-At-The-Beginning) 방식 사용
+
+Remark는 짧지만 중요합니다. 이 단계가 정확하지 않으면 잘못된 객체가 수집 대상이 될 수 있습니다.
+
+5.4 Cleanup
+
+STW + Concurrent
+
+Live Object가 거의 없는 Region을 즉시 Free 처리
+
+Old Region 중 일부는 수집 후보로 분류됨
+
+이 시점에서 JVM은 다음을 이미 알고 있습니다.
+
+어떤 Old Region에 Garbage가 많은지
+
+어떤 Region을 먼저 수집하면 Pause Time 대비 효율이 좋은지
 
 
 **SATB (Snapshot-At-The-Beginning)**

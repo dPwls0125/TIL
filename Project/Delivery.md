@@ -94,78 +94,22 @@ SSE는 한 번 연결하면 서버가 이벤트 발생 시 즉시 데이터를 p
 따라서 불필요한 반복 요청 없이 효율적인 실시간 알림 구현이 가능하다.  
 특히 알림, 상태 변경, 로그 스트리밍처럼 서버 → 클라이언트 단방향 이벤트 전달에 적합하다.
 
-### 2026.02.25
-**TCP 연결이 해재되었을때 SSE는 어떻게 재연결하는가**  
+### 2026.02.26 
 
-라이더는 이동하면서 IP가 변경될 수 있다.
-TCP는 IP + Port 기반 연결이므로, 연결 중인 IP가 변경되면 기존 TCP 세션은 유지될 수 없다.
+**문제 상황**   
+라이더의 IP가 변경되면 TCP 연결이 끊어지면서 SSE 연결도 종료된다.
+이때 서버가 전송한 알림은 클라이언트가 수신하지 못해 유실될 수 있다.
 
-실제로 네트워크를 변경해보면 기존 SSE 연결은 즉시 끊기며, 서버 측에서는 IOException이 발생하고 onCompletion 콜백이 실행된다.
+브라우저의 EventSource는 자동 재연결을 지원하지만,
+기본적으로 “끊긴 동안의 이벤트”를 복구해주지는 않는다.
 
-클라이언트 측에서는 new EventSource()(브라우저 엔진 내부 코드)로 생성된 객체가 내부적으로 자동 재연결을 수행한다.
-MDN 문서 및 Chromium 구현 코드를 확인해보면, 연결이 끊기면 일정 시간(retry, 기본 약 3초) 후 동일한 URL로 재요청을 보내도록 구현되어 있다.
+이를 해결하려면 서버에서 모든 이벤트에 id를 부여해야 한다.
+클라이언트는 재연결 시 Last-Event-ID를 서버에 전달한다.
 
-따라서 Delivery 서버는 IP 변경을 감지하거나 emitter의 IP를 업데이트할 필요가 없으며,
-기존 emitter를 정리하고 재요청 시 새로운 emitter를 생성하는 구조로 충분하다.
+서버는 해당 ID 이후의 이벤트를 재전송할 수 있어야 한다.
+따라서 알림을 단순히 소켓으로만 전송하면 안 되고,
+Redis Streams, Kafka, DB 등 영속 저장소에 먼저 저장해야 한다.
 
-1. 네트워크 종료 시 동작
-
-Chromium Blink 엔진의 EventSource 구현을 보면, 네트워크 요청이 종료되면 NetworkRequestEnded()가 호출된다.
-```
-void EventSource::NetworkRequestEnded() {
-loader_ = nullptr;
-
-if (state_ != kClosed)
-ScheduleReconnect();
-}
-```
-TCP 연결 종료, 서버 연결 종료, 네트워크 에러 등은 모두 동일하게 "네트워크 요청 종료"로 처리된다.  
-
-2. 재연결은 타이머 기반으로 수행됨
-재연결 로직은 ScheduleReconnect()에서 구현되어 있다.
-```
-void EventSource::ScheduleReconnect() {
-state_ = kConnecting;
-connect_timer_.StartOneShot(
-base::Milliseconds(reconnect_delay_), FROM_HERE);
-DispatchEvent(*Event::Create(event_type_names::kError));
-}
-```
-동작 과정은 다음과 같다.
-상태를 CONNECTING으로 변경, 재연결 타이머 설정 (기본 3000ms), error 이벤트 발생
-
-3. 실제 재연결 수행 시점
-타이머가 만료되면 Connect()가 호출된다.
-```
-void EventSource::ConnectTimerFired(TimerBase*) {
-Connect();
-}
-```
-
-Connect()에서는 새로운 HTTP 요청을 생성한다.
-```
-request.SetHttpMethod("GET");
-request.SetHttpHeaderField("Accept", "text/event-stream");
-loader_->Start(request);
-```
-
-즉, 기존 연결을 복구하는 것이 아니라 동일 URL로 새로운 HTTP 요청을 보내는 방식이다.
-
-4. 재연결 시 Last-Event-ID 자동 포함
-재연결 요청에는 마지막 이벤트 ID가 자동으로 포함된다.
-```
-if (parser_ && !parser_->LastEventId().empty()) {
-request.SetHttpHeaderField("Last-Event-ID", ...);
-}
-```
-이를 통해 서버는 누락된 이벤트를 재전송할 수 있다.
-
-5. IP 변경 시 동작 정리
-
-IP 변경은 브라우저 입장에서 별도의 특별한 처리가 아니라 단순히 네트워크 연결 종료로 처리된다. 따라서 다음과 같은 흐름으로 동작한다.
-
-1. TCP 연결 종료 감지
-2. NetworkRequestEnded() 호출
-3. ScheduleReconnect() 실행
-4. 타이머 만료 후 Connect() 호출
-5. 동일 URL로 새로운 HTTP 요청 전송
+“재연결”만이 아니라 “이벤트 재전송 구조”가 또한 필요하다.  
+재연결은 EventSource가 지원하고 있으므로 Delivery server에서는 이벤트가 재전송 될 수 있도록 하는 내용을 구현해야할 것 같다.
+ 

@@ -64,3 +64,13 @@ public CompletableFuture<String> test() {
 2. Controller가 완료되지 않은 CompletableFuture를 반환하면 해당 스레드는 바로 풀로 반환되고, 실제 비즈니스 로직은 ForkJoinPool의 별도 스레드에서 실행된다. 즉, 요청 처리 스레드와 비동기 작업 실행 스레드는 서로 다른 풀에 속하며 완전히 분리되어 동작한다.
 
 정리하면, Spring MVC에서 CompletableFuture를 사용하면 HTTP 요청을 처리하는 Tomcat worker thread는 비동기 작업 동안 점유되지 않고 빠르게 반환되며, 실제 작업은 별도의 비동기 스레드에서 수행된다. 
+
+
+**Tomcat Thread vs Worker Thread** 
+
+| 구분  | Tomcat Thread (Connector Thread) |  Worker THread (Application Thread) | 
+| ------------- |:-------------:| ------------- |
+| 관리 주체     | WAS (Tomcat)     | Application (Spring/Java) |
+| 주요 임무       | Http 요청 수신, 소켓 관리, 응답 전송 | 복잡한 비즈니스 로직, I/O 작업 수행 | 
+| 자원 성격      | 외부 통신을 위한 관문 | 내부 연산을 위한 일꾼 | 
+| 부족할 때 현상 | Connection Timeout, 접속 불가 | 응답 지연 (큐에 쌓임), 성능 저하 |

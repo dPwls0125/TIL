@@ -74,3 +74,4 @@ public CompletableFuture<String> test() {
 | 주요 임무       | Http 요청 수신, 소켓 관리, 응답 전송 | 복잡한 비즈니스 로직, I/O 작업 수행 | 
 | 자원 성격      | 외부 통신을 위한 관문 | 내부 연산을 위한 일꾼 | 
 | 부족할 때 현상 | Connection Timeout, 접속 불가 | 응답 지연 (큐에 쌓임), 성능 저하 |
+

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/TIL.iml" filepath="$PROJECT_DIR$/.idea/TIL.iml" />
+      <module fileurl="file://$PROJECT_DIR$/docker.iml" filepath="$PROJECT_DIR$/docker.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/performance.main.iml" filepath="$PROJECT_DIR$/.idea/modules/performance.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/performance.test.iml" filepath="$PROJECT_DIR$/.idea/modules/performance.test.iml" />
     </modules>

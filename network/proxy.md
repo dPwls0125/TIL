@@ -30,4 +30,3 @@ proxy_pass http://www.example.com/link/;
     Https 암호화/복호화를 리버스 프록시에서 한번에 처리하면 내부 서버들은 Http로만 통신해도 됨. 
 4. 캐싱  
     자주 요청되는 응답을 프록시에 캐싱
-    

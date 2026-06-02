@@ -7,6 +7,8 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/docker.test.iml" filepath="$PROJECT_DIR$/.idea/modules/docker.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/performance.main.iml" filepath="$PROJECT_DIR$/.idea/modules/performance.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/performance.test.iml" filepath="$PROJECT_DIR$/.idea/modules/performance.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/spring_boot.main.iml" filepath="$PROJECT_DIR$/.idea/modules/spring_boot.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/spring_boot.test.iml" filepath="$PROJECT_DIR$/.idea/modules/spring_boot.test.iml" />
     </modules>
   </component>
 </project>

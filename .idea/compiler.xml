@@ -8,6 +8,9 @@
       <module name="performance" target="21" />
       <module name="performance.main" target="21" />
       <module name="performance.test" target="21" />
+      <module name="spring_boot" target="21" />
+      <module name="spring_boot.main" target="21" />
+      <module name="spring_boot.test" target="21" />
     </bytecodeTargetLevel>
   </component>
 </project>
